@@ -1,37 +1,39 @@
-name: Release
+name: Release on Push to Main
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
-  build:
+  build-and-release:
     runs-on: windows-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: '8.0.x'  # Match your project’s .NET version
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.0.x'  # Adjust to match your project’s .NET version
 
-    - name: Build
-      run: dotnet build --configuration Release
+      - name: Build
+        run: dotnet build --configuration Release
 
-    - name: Publish
-      run: dotnet publish --configuration Release --runtime win-x64 --self-contained true --output publish
+      - name: Publish Single-File Executable
+        run: dotnet publish --configuration Release --runtime win-x64 --self-contained true --output publish /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
 
-    - name: Zip publish folder
-      run: Compress-Archive -Path publish\* -DestinationPath release.zip
-      shell: pwsh
+      - name: Rename Executable
+        run: Move-Item -Path "publish\SimpleNativeLLMClient.exe" -Destination "SimpleNativeLLMClient-${{ github.sha }}.exe"
+        shell: pwsh
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ github.ref_name }}
-        name: Release ${{ github.ref_name }}
-        draft: false
-        prerelease: false
-        files: release.zip
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: "auto-release-${{ github.sha }}"
+          name: "Auto Release ${{ github.sha }}"
+          draft: false
+          prerelease: true
+          files: "SimpleNativeLLMClient-${{ github.sha }}.exe"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
