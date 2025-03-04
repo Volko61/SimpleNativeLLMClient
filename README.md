@@ -1,4 +1,6 @@
+#SimpleNativeLLM
 ![image](https://github.com/user-attachments/assets/0ca6ca42-e6f3-429c-9fb8-9e53d32420a0)
+
 Can be usefull to test an openai compatible endpoint for example or your ollama.
 Made in Windows Form so that you can just download the .exe and use it directly.
 
